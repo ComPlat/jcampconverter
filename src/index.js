@@ -153,6 +153,8 @@ function getConverter() {
             dataLabel = 'XYDATA';
             spectrum.deltaX =
               (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+          } else if (infos[0] && infos[0].indexOf('(XYA)') >= 0) {
+            dataLabel = 'XYDATA';
           }
         }
       }
@@ -161,7 +163,7 @@ function getConverter() {
         if (wantXY) {
           prepareSpectrum(result, spectrum);
           // well apparently we should still consider it is a PEAK TABLE if there are no '++' after
-          if (dataValue.match(/.*\+\+.*/)) {
+          if (dataValue.match(/.*\+\+.*/)) { // ex: (X++(Y..Y))
             if (!spectrum.deltaX) {
               spectrum.deltaX =
                 (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
@@ -178,6 +180,16 @@ function getConverter() {
         if (wantXY) {
           prepareSpectrum(result, spectrum);
           parsePeakTable(spectrum, dataValue, result);
+          spectra.push(spectrum);
+          spectrum = new Spectrum();
+        }
+        continue;
+      }
+      if (dataLabel === 'PEAKASSIGNMENTS') {
+        if (wantXY) {
+          if (dataValue.match(/.*(XYA).*/)) { // ex: (XYA)
+            parseXYA(spectrum, dataValue);
+          }
           spectra.push(spectrum);
           spectrum = new Spectrum();
         }
@@ -849,6 +861,23 @@ function getConverter() {
           // if "+" we just don't care
         }
       }
+    }
+  }
+
+  function parseXYA(spectrum, value) {
+    var removeSymbolRegExp = /(\(+|\)+|\<+|\>+|\s+)/g;
+
+    spectrum.isXYAdata = true;
+    var i, ii, j, jj, values;
+    var currentData = [];
+    spectrum.data = [currentData];
+
+    var lines = value.split(/,? *,?[;\r\n]+ */);
+
+    for (i = 1, ii = lines.length; i < ii; i++) {
+      values = lines[i].trim().replace(removeSymbolRegExp, '').split(',');
+      currentData.push(parseFloat(values[0]));
+      currentData.push(parseFloat(values[1]));
     }
   }
 
