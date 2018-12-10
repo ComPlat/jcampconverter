@@ -250,9 +250,7 @@ function getConverter() {
       } else if (dataLabel === '$OFFSET') {
         // OFFSET for Bruker spectra
         result.shiftOffsetNum = 0;
-        if (!result.shiftOffsetVal) {
-          result.shiftOffsetVal = parseFloat(dataValue);
-        }
+        result.shiftOffsetVal = parseFloat(dataValue);
       } else if (dataLabel === '$REFERENCEPOINT') {
         // OFFSET for Varian spectra
         // if we activate this part it does not work for ACD specmanager
